@@ -13,6 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use FOS\UserBundle\Model\User as BaseUser;
+use Scheb\TwoFactorBundle\Model\Google\TwoFactorInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -31,7 +32,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @UniqueEntity("username")
  * @UniqueEntity("email")
  */
-class User extends BaseUser implements UserInterface
+class User extends BaseUser implements UserInterface, TwoFactorInterface
 {
     public const ROLE_CUSTOMER = 'ROLE_CUSTOMER';
     public const ROLE_USER = 'ROLE_USER';
@@ -300,5 +301,32 @@ class User extends BaseUser implements UserInterface
     public function __toString()
     {
         return $this->getAlias() ?: $this->getUsername();
+    }
+
+    /**
+     * @ORM\Column(name="googleAuthenticatorSecret", type="string", nullable=true)
+     */
+    private $googleAuthenticatorSecret;
+
+    // [...]
+
+    public function isGoogleAuthenticatorEnabled(): bool
+    {
+        return null !== $this->googleAuthenticatorSecret;
+    }
+
+    public function getGoogleAuthenticatorUsername(): string
+    {
+        return $this->username;
+    }
+
+    public function getGoogleAuthenticatorSecret(): string
+    {
+        return $this->googleAuthenticatorSecret;
+    }
+
+    public function setGoogleAuthenticatorSecret(?string $googleAuthenticatorSecret): void
+    {
+        $this->googleAuthenticatorSecret = $googleAuthenticatorSecret;
     }
 }
