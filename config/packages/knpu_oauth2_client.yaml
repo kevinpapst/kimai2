@@ -1,0 +1,22 @@
+parameters:
+    oauth_clients: google|gitlab
+
+knpu_oauth2_client:
+    clients:
+        # configure your clients as described here: https://github.com/knpuniversity/oauth2-client-bundle#configuration
+
+        gitlab:
+            type: gitlab
+            client_id: '%env(OAUTH_GITLAB_CLIENT_ID)%'
+            client_secret: '%env(OAUTH_GITLAB_CLIENT_SECRET)%'
+            redirect_route: oauth_check
+            redirect_params: { client: 'gitlab' }
+            domain: '%env(OAUTH_GITLAB_DOMAIN)%'
+
+        google:
+            type: google
+            client_id: '%env(OAUTH_GOOGLE_CLIENT_ID)%'
+            client_secret: '%env(OAUTH_GOOGLE_CLIENT_SECRET)%'
+            redirect_route: oauth_check
+            redirect_params:  { client: 'google' }
+            hosted_domain: null
