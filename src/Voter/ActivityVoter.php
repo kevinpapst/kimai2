@@ -28,6 +28,8 @@ final class ActivityVoter extends Voter
         'view',
         'edit',
         'budget',
+        'comments',
+        'comments_create',
         'delete',
         'permissions',
     ];

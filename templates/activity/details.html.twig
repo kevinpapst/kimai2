@@ -100,6 +100,14 @@
         {{ include('embeds/teams.html.twig', options) }}
     {% endif %}
 
+    {% if comments is not null %}
+        {% set options = {'form': commentForm, 'comments': comments} %}
+        {% if can_edit %}
+            {% set options = options|merge({'route_pin': 'activity_comment_pin', 'route_delete': 'activity_comment_delete'}) %}
+        {% endif %}
+        {{ include('embeds/comments.html.twig', options) }}
+    {% endif %}
+
 {% endblock %}
 
 {% block javascripts %}
