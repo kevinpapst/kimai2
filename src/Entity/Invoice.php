@@ -11,6 +11,8 @@ namespace App\Entity;
 
 use App\Export\Annotation as Exporter;
 use App\Invoice\InvoiceModel;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -32,7 +34,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @Exporter\Expose("user", label="label.username", type="string", exp="object.getUser() === null ? null : object.getUser().getDisplayName()")
  * @Exporter\Expose("paymentDate", label="invoice.payment_date", type="date", exp="object.getPaymentDate() === null ? null : object.getPaymentDate()")
  */
-class Invoice
+class Invoice implements EntityWithMetaFields
 {
     public const STATUS_PENDING = 'pending';
     public const STATUS_PAID = 'paid';
@@ -169,6 +171,17 @@ class Invoice
     private $invoiceFilename;
 
     /**
+     * Meta fields
+     *
+     * All visible meta (custom) fields registered with this invoice
+     *
+     * @var InvoiceMeta[]|Collection
+     *
+     * @ORM\OneToMany(targetEntity="App\Entity\InvoiceMeta", mappedBy="invoice", cascade={"persist"})
+     */
+    private $meta;
+
+    /**
      * @var bool
      */
     private $localized = false;
@@ -179,6 +192,11 @@ class Invoice
      * @ORM\Column(name="payment_date", type="date", nullable=true)
      */
     private $paymentDate;
+
+    public function __construct()
+    {
+        $this->meta = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -346,6 +364,54 @@ class Invoice
     public function setPaymentDate(?\DateTime $paymentDate): Invoice
     {
         $this->paymentDate = $paymentDate;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MetaTableTypeInterface[]
+     */
+    public function getMetaFields(): Collection
+    {
+        return $this->meta;
+    }
+
+    /**
+     * @return MetaTableTypeInterface[]
+     */
+    public function getVisibleMetaFields(): array
+    {
+        $all = [];
+        foreach ($this->meta as $meta) {
+            if ($meta->isVisible()) {
+                $all[] = $meta;
+            }
+        }
+
+        return $all;
+    }
+
+    public function getMetaField(string $name): ?MetaTableTypeInterface
+    {
+        foreach ($this->meta as $field) {
+            if (strtolower($field->getName()) === strtolower($name)) {
+                return $field;
+            }
+        }
+
+        return null;
+    }
+
+    public function setMetaField(MetaTableTypeInterface $meta): EntityWithMetaFields
+    {
+        if (null === ($current = $this->getMetaField($meta->getName()))) {
+            $meta->setEntity($this);
+            $this->meta->add($meta);
+
+            return $this;
+        }
+
+        $current->merge($meta);
 
         return $this;
     }
