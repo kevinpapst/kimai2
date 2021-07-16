@@ -34,20 +34,14 @@ class DateTimePickerType extends AbstractType
      */
     public function configureOptions(OptionsResolver $resolver)
     {
-        $dateTimePicker = $this->localeSettings->getDateTimePickerFormat();
-        $dateTimeFormat = $this->localeSettings->getDateTimeTypeFormat();
+        //$dateTimePicker = $this->localeSettings->getDateTimePickerFormat();
+        //$dateTimeFormat = $this->localeSettings->getDateTimeTypeFormat();
 
         $resolver->setDefaults([
-            'documentation' => [
-                'type' => 'string',
-                'format' => 'date-time',
-                'example' => (new \DateTime())->format(BaseApiController::DATE_FORMAT_PHP),
-            ],
             'label' => 'label.begin',
-            'widget' => 'single_text',
-            'html5' => false,
-            'format' => $dateTimeFormat,
-            'format_picker' => $dateTimePicker,
+            'date_widget' => 'single_text',
+            'time_widget' => 'single_text',
+            'html5' => true,
             'with_seconds' => false,
             'time_increment' => 1,
         ]);
@@ -55,12 +49,20 @@ class DateTimePickerType extends AbstractType
 
     public function buildView(FormView $view, FormInterface $form, array $options)
     {
+        $presets = [];
+        for ($minutes = 0; $minutes <= 1425; $minutes += 15) {
+            $h = (int) ($minutes / 60);
+            $m = $minutes % 60;
+            $interval = new \DateInterval('PT' . $h . 'H' . $m . 'M');
+            $presets[] = $interval->format('%H:%I');
+        }
+
+        $view->vars['time_presets'] = $presets;
+
         $view->vars['attr'] = array_merge($view->vars['attr'], [
-            'data-datetimepicker' => 'on',
-            'autocomplete' => 'off',
             'placeholder' => strtoupper($options['format']),
-            'data-format' => $options['format_picker'],
             'data-time-picker-increment' => $options['time_increment'],
+            'class' => 'datetime-group',
         ]);
     }
 
